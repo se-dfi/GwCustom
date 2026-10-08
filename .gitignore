@@ -5,3 +5,5 @@
 *.suo
 *.rsuser
 TestResults/
+/GwCustom_Setup/Release/GwCustom_Setup.msi
+/GwCustom_Setup/Release/setup.exe
