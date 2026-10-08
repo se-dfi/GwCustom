@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GwCustom": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

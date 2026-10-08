@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GwCustomInstall": {
+      "commandName": "Project",
+      "commandLineArgs": "-prod 30597027"
+    }
+  }
+}

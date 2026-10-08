@@ -1,0 +1,71 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GwCustomUI"
+        xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" x:Class="GwCustomUI.SignatureUI"
+        mc:Ignorable="d"
+        Title="Signature" Height="770" MinHeight="500" MaxHeight="1000" Width="1000" SizeToContent="Width" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" DpiChanged="Window_DpiChanged" SizeChanged="Window_SizeChanged">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="750"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+        <Wpf:WebView2 Name="WvPreview" Grid.Column="0" Width="Auto" Height="Auto"/>
+        <Grid Grid.Column="1" Height="Auto" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height=".5*" MinHeight="110" MaxHeight="300"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*" MinHeight="110" MaxHeight="450"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="42"/>
+                <RowDefinition Height="42"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Label Name="LblUser" Content="cmbUser" Target="{Binding ElementName=CmbUser}"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <ComboBox Name="CmbUser" SelectionChanged="CmbUser_SelectionChanged"></ComboBox>
+            </Grid>
+            <Grid Grid.Row="2">
+                <Label Name="LblLayout" Content="LbLayout" Width="Auto" Target="{Binding ElementName=LbLayout}"/>
+            </Grid>
+            <Grid Grid.Row="3">
+                <ListBox Name="LbLayout" VerticalAlignment="Stretch" MinHeight="100" Margin="0,0,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top" SelectionChanged="LbLayout_SelectionChanged" SelectionMode="Single"></ListBox>
+            </Grid>
+            <Grid Grid.Row="4">
+                <CheckBox Name="CbInfo" Content="CbInfo" Click="CbInfo_Click"></CheckBox>
+            </Grid>
+            <Grid Grid.Row="5">
+                <Label Name="LblSignature" Content="LbSignature" Target="{Binding ElementName=LbSignature}"/>
+            </Grid>
+            <Grid Grid.Row="6">
+                <ListBox Name="LbSignature" Width="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="100" Margin="0,0,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top" SelectionMode="Single" SelectionChanged="LbSignature_SelectionChanged"></ListBox>
+            </Grid>
+            <Grid Grid.Row="7">
+                <CheckBox Name="CbMobile" Content="CbMobile" Click="CbMobile_Click"></CheckBox>
+            </Grid>
+            <Grid Grid.Row="8" Height="42">
+                <Button Name="BtnSend" Height="32" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Click="BtnSend_Click" HorizontalContentAlignment="Right">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Name="TxtSend" Text="TxtSend" VerticalAlignment="Center" Margin="0,0,5,0" />
+                        <Image Source="/GwCustomUI;component/Files/mail.png" Width="24" Height="24" Margin="0,0,5,0" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+            <Grid Grid.Row="9" Height="42">
+                <Button Name="BtnDms" Height="32" VerticalAlignment="Bottom" Click="BtnDms_Click" HorizontalContentAlignment="Right">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Name="TxtDms" Text="TxtDms" VerticalAlignment="Center" Margin="0,0,5,0" />
+                        <Image Source="/GwCustomUI;component/Files/enaio.png" Width="24" Height="24" Margin="0,0,5,0" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

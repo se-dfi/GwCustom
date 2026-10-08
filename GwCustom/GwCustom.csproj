@@ -1,0 +1,108 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Globals">
+    <WebView2LoaderPreference>Dynamic</WebView2LoaderPreference>
+    <WebView2UseWinRT>False</WebView2UseWinRT>
+    <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableComHosting>true</EnableComHosting>
+    <EnableRegFreeCom>false</EnableRegFreeCom>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <DebugType>embedded</DebugType>
+    <Authors>seele IT - Daniel Fischer</Authors>
+    <Platforms>AnyCPU</Platforms>
+    <SignAssembly>True</SignAssembly>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <OutputType>Library</OutputType>
+    <AssemblyVersion>1.4.1</AssemblyVersion>
+    <ApplicationIcon>Files\se.ico</ApplicationIcon>
+    <NeutralLanguage>de</NeutralLanguage>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;NU1701</NoWarn>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;NU1701</NoWarn>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Files\client.png" />
+    <None Remove="Files\folder.png" />
+    <None Remove="Files\info.png" />
+    <None Remove="Files\storage.png" />
+    <None Remove="Files\type.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="C3POTypeLibrary">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>b79c7ba0-f9ac-11ce-832c-444553540000</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="GroupwareTypeLibrary">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>e775d180-d9fb-11ce-b6f9-00608c84e1c4</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="GroupWiseCommander">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>025b5fe0-7049-11cf-a6b0-00608c85aa11</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Files\se.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
+    <PackageReference Include="RestSharp" />
+    <PackageReference Include="System.Data.SQLite.Core" />
+    <PackageReference Include="System.Diagnostics.EventLog" />
+    <PackageReference Include="System.Text.Encoding.CodePages" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Unofficial.Microsoft.mshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GwCustomUI\GwCustomUI\GwCustomUI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Files\client.png" />
+    <Resource Include="Files\folder.png" />
+    <Resource Include="Files\info.png" />
+    <Resource Include="Files\storage.png" />
+    <Resource Include="Files\type.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
