@@ -12,11 +12,11 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.20" />
     <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
     <PackageVersion Include="RestSharp" Version="114.0.0" />
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.12" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="9.0.20" />
     <PackageVersion Include="System.Data.SQLite.Core" Version="1.0.119" />
-    <PackageVersion Include="System.Diagnostics.EventLog" Version="10.0.12" />
-    <PackageVersion Include="System.Text.Encoding.CodePages" Version="10.0.12" />
-    <PackageVersion Include="System.Text.Json" Version="10.0.12" />
+    <PackageVersion Include="System.Diagnostics.EventLog" Version="9.0.20" />
+    <PackageVersion Include="System.Text.Encoding.CodePages" Version="9.0.20" />
+    <PackageVersion Include="System.Text.Json" Version="9.0.20" />
     <PackageVersion Include="Unofficial.Microsoft.mshtml" Version="7.0.3300" />
   </ItemGroup>
 </Project>
