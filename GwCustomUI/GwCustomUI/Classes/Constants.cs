@@ -22,12 +22,12 @@ namespace GwCustomUI.Classes
         /// <summary>
         /// Versionsnummer
         /// </summary>
-        public static readonly string APPVERSION = "1.4.1";
+        public static readonly string APPVERSION = "1.4.2";
 
         /// <summary>
         /// Releasedate der Version
         /// </summary>
-        public static readonly DateTime APPRELEASEDATE = new(2026, 4, 13);
+        public static readonly DateTime APPRELEASEDATE = new(2026, 10, 12);
 
         /// <summary>
         /// Applikationspfad Daten

@@ -19,7 +19,7 @@
     <SignAssembly>True</SignAssembly>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>1.4.1</AssemblyVersion>
+    <AssemblyVersion>1.4.2</AssemblyVersion>
     <ApplicationIcon>Files\se.ico</ApplicationIcon>
     <NeutralLanguage>de</NeutralLanguage>
   </PropertyGroup>

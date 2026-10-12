@@ -29,6 +29,9 @@ namespace GwCustom.Actions
             {
                 CommonUtil.CreateFolder(APPDATAPATH);
                 CommonUtil.CreateFolder(USERDATAPATH);
+
+                // WebView2-Datenverzeichnis bei Versionswechsel bereinigen
+                CommonUtil.CleanWebViewUserData();
             }
             catch (Exception e)
             {

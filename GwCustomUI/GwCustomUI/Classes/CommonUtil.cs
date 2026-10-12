@@ -70,6 +70,22 @@ namespace GwCustomUI.Classes
         }
 
         /// <summary>
+        /// WebView2-Datenverzeichnis bei Versionswechsel vollständig zurücksetzen (Schutz vor defektem EBWebView-Ordner)
+        /// </summary>
+        public static void CleanWebViewUserData() {
+            string markerfile = Path.Combine(USERDATAPATH, "webview.version");
+            string current = File.Exists(markerfile) ? File.ReadAllText(markerfile) : string.Empty;
+
+            if (current != APPVERSION) {
+                string ebwebview = Path.Combine(USERDATAPATH, "EBWebView");
+                if (Directory.Exists(ebwebview)) {
+                    Directory.Delete(ebwebview, true);
+                }
+                File.WriteAllText(markerfile, APPVERSION);
+            }
+        }
+
+        /// <summary>
         /// String kürzen nach abgeschlossenem Wort gemäß der gewünschten Länge
         /// </summary>
         /// <param name="text"></param>

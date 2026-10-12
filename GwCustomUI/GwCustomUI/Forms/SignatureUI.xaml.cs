@@ -98,27 +98,38 @@ namespace GwCustomUI {
             BtnSend.IsDefault = true;
             BtnSend.Focus();
 
-            // WebView initialisieren
-            WvPreview.CreationProperties = new CoreWebView2CreationProperties {
-                UserDataFolder = USERDATAPATH
-            };
-            await WvPreview.EnsureCoreWebView2Async();
-            WvPreview.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
-            WvPreview.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            WvPreview.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
-            WvPreview.CoreWebView2.Settings.AreDevToolsEnabled = false;
-            WvPreview.CoreWebView2.Settings.AreHostObjectsAllowed = false;
-            WvPreview.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsPinchZoomEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsScriptEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsStatusBarEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsWebMessageEnabled = false;
-            WvPreview.CoreWebView2.Settings.IsZoomControlEnabled = false;
-            WvPreview.CoreWebView2.NavigationStarting += CancelNavigation;
-            WvPreview.CoreWebView2.NewWindowRequested += PreventNewWindow;
+            // WebView mit geteilter Environment initialisieren (verhindert RPC_E_DISCONNECTED abgestorbener Browserprozesse)
+            bool previewAvailable = true;
+            try {
+                CoreWebView2Environment env = await WebViewEnvironment.GetAsync();
+                await WvPreview.EnsureCoreWebView2Async(env);
+
+                // Dialog wurde während der Initialisierung geschlossen
+                if (!IsLoaded) {
+                    return;
+                }
+
+                WvPreview.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
+                WvPreview.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                WvPreview.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
+                WvPreview.CoreWebView2.Settings.AreDevToolsEnabled = false;
+                WvPreview.CoreWebView2.Settings.AreHostObjectsAllowed = false;
+                WvPreview.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsPinchZoomEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsScriptEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsWebMessageEnabled = false;
+                WvPreview.CoreWebView2.Settings.IsZoomControlEnabled = false;
+                WvPreview.CoreWebView2.NavigationStarting += CancelNavigation;
+                WvPreview.CoreWebView2.NewWindowRequested += PreventNewWindow;
+            } catch (Exception ex) {
+                // Vorschau nicht verfügbar, Dialog bleibt funktionsfähig
+                previewAvailable = false;
+                CommonUtil.GlobalErrorHandler(ex, true);
+            }
 
             // Vorschau-Timer initialisieren
             _previewTimer.Tick += (s, e) => {
@@ -133,7 +144,9 @@ namespace GwCustomUI {
             CmbUser.SelectedValue = _user.Login;
 
             // Vorschauerstellung mittels Timer
-            TriggerPreview();
+            if (previewAvailable) {
+                TriggerPreview();
+            }
         }
 
         private void Window_DpiChanged(object sender, System.Windows.DpiChangedEventArgs e) {
@@ -279,6 +292,9 @@ namespace GwCustomUI {
         }
 
         private void TriggerPreview() {
+            if (WvPreview.CoreWebView2 == null) {
+                return;
+            }
             _previewTimer.Stop();
             _previewTimer.Start();
         }
