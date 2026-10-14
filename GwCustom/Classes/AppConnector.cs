@@ -36,12 +36,22 @@ namespace GwCustom.Custom
         };
 
         /// <summary>
-        /// RestSharp Client instanzieren
+        /// JSON-Serialisierungsoptionen, thread-safe nach Erstverwendung
+        /// </summary>
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault };
+
+        /// <summary>
+        /// Shared RestSharp Client, wiederverwendet HTTP-Connection-Pool und vermeidet Socket-/Thread-Exhaustion
+        /// </summary>
+        private static readonly RestClient restClient = new(restoptions, configureSerialization: s => s.UseSystemTextJson(jsonSerializerOptions));
+
+        /// <summary>
+        /// Gemeinsamen RestSharp Client bereitstellen (RestClient ist thread-safe)
         /// </summary>
         /// <returns>RestSharp Client</returns>
         private static RestClient GetRestClient()
         {
-            return new RestClient(restoptions, configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault }));
+            return restClient;
         }
 
         /// <summary>
@@ -51,8 +61,10 @@ namespace GwCustom.Custom
         public static async Task<bool> CheckReachable()
         {
             // Request mit Fehlerunterdrückung und Rückgabe
-            RestClient client = new(new RestClientOptions(CommonUtil.GetConfig().RestUrlEnaio) { Timeout = TimeSpan.FromSeconds(5) });
-            RestRequest request = new("api/serviceinfo/ping", Method.Get);
+            RestRequest request = new("api/serviceinfo/ping", Method.Get)
+            {
+                Timeout = TimeSpan.FromSeconds(5)
+            };
             RestResponse? response = null;
             try
             {
@@ -60,7 +72,7 @@ namespace GwCustom.Custom
                 {
                     try
                     {
-                        response = await client.GetAsync(request).ConfigureAwait(false);
+                        response = await restClient.GetAsync(request).ConfigureAwait(false);
                         break;
                     }
                     catch (HttpRequestException)

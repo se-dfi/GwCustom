@@ -19,11 +19,16 @@ namespace GwCustomUI.Classes {
         };
 
         /// <summary>
-        /// RestSharp Client instanzieren
+        /// Shared RestSharp Client, wiederverwendet HTTP-Connection-Pool und vermeidet Socket-/Thread-Exhaustion
+        /// </summary>
+        private static readonly RestClient restClient = new(restoptions);
+
+        /// <summary>
+        /// Gemeinsamen RestSharp Client bereitstellen (RestClient ist thread-safe)
         /// </summary>
         /// <returns>RestSharp Client</returns>
         private static RestClient GetRestClient() {
-            return new RestClient(restoptions);
+            return restClient;
         }
 
         /// <summary>
