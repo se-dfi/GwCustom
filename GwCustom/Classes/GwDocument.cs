@@ -152,16 +152,6 @@ namespace GwCustom.Models
         }
 
         /// <summary>
-        ///  Zielstandort für eine im DMS noch nicht vorhandene Groupwise Nachricht ermitteln,
-        ///  blockierender Synchronaufruf nur für in C3PO synchron gebundene Abläufe (CmdSend)
-        /// </summary>
-        /// <returns>DMS Standort</returns>
-        public DmsLocation? GetDmsTargetLocation()
-        {
-            return GetDmsTargetLocationAsync().GetAwaiter().GetResult();
-        }
-
-        /// <summary>
         ///  Zielstandort für eine im DMS noch nicht vorhandene Groupwise Nachricht ermitteln
         /// </summary>
         /// <returns>DMS Standort</returns>

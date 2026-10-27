@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace GwCustom.Actions {
     public class CmdSend : Execute {
@@ -59,7 +60,7 @@ namespace GwCustom.Actions {
         }
 
         /// <summary>
-        /// Ausführung nach Groupwise Event / Ablage nach Mailversand
+        /// Ausführung nach Groupwise Event / Ablage nach Mailversand, Vorabprüfungen synchron, die Ablage selbst asynchron
         /// </summary>
         public override void Run() {
             // Hinweis: Sofern eine E-Mailablage stattfinden soll, handelt es sich beim Versand immer um ein neues, hochzuladendes Objekt.
@@ -67,69 +68,84 @@ namespace GwCustom.Actions {
 
             // Ablage nur bei entsprechendem Sendebutton und vorhandener GUID
             if (SignatureStatic.Storage && !string.IsNullOrEmpty(SignatureStatic.SentGuid)) {
-                // enaio AppConnector Verfügbarkeitsprüfung
-                if (!AppConnector.CheckReachable().GetAwaiter().GetResult()) {
-                    throw new Exception(MultiLanguage.GetText("noappconnector"));
-                }
+                // Statische Werte zurücksetzen, die asynchrone Verarbeitung arbeitet mit der lokalen Kopie
+                string sentGuid = SignatureStatic.SentGuid!;
+                SignatureStatic.SentGuid = string.Empty;
+                SignatureStatic.Storage = false;
 
                 // Fortschrittsdialog anzeigen
                 FUpload FormProgress = new(this);
                 FormProgress.Initialize();
                 FormProgress.Show();
 
+                // Ablage asynchron ohne den Groupwise-Hauptthread zu blockieren
+                _ = ProcessStorage(sentGuid, FormProgress);
+            }
+        }
+
+        /// <summary>
+        /// Durchführung der Ablage im DMS und Auslösen der Weiterverarbeitung im Ablageclient
+        /// </summary>
+        private async Task ProcessStorage(string sentGuid, FUpload FormProgress) {
+            try {
+                // enaio AppConnector Verfügbarkeitsprüfung
+                if (!await AppConnector.CheckReachable()) {
+                    throw new Exception(MultiLanguage.GetText("noappconnector"));
+                }
+
+                // Verarbeitungsfortschritt aktualisieren
+                DmsProgressArgs args = new() {
+                    Current = 1,
+                    Maximum = 1,
+                    Information = MultiLanguage.GetText("getsentmessage"),
+                    Cancel = false
+                };
+                OnDmsProgress(args);
+
+                // Versendete Nachricht ermitteln und Ablage vorbereiten, Groupwise-Zugriff wechselt dafür zurück auf den Hauptthread
+                GroupwareTypeLibrary.Message? msg = null;
+                GwDocument? document = null;
+                FormProgress.Invoke((Action)(() => {
+                    msg = GroupwiseUtil.GetSentMessage(sentGuid);
+                    document = new GwDocument(msg);
+                }));
+
+                // Standortermittlung aus History-Einträgen
+                args.Information = MultiLanguage.GetText("gettargetlocation");
+                OnDmsProgress(args);
+                DmsLocation? location = await document!.GetDmsTargetLocationAsync();
+
+                // Upload ins Dms mit Indexdaten und Ermittlung der Id
+                args.Information = MultiLanguage.GetText("dmsupload");
+                OnDmsProgress(args);
+                string exportFile = Path.Combine(Path.GetTempPath(), $"{Constants.APPSHORT}_{DateTime.Now.ToFileTime()}.ima");
+                ulong dmsId;
                 try {
-                    // Verarbeitungsfortschritt aktualisieren
-                    DmsProgressArgs args = new() {
-                        Current = 1,
-                        Maximum = 1,
-                        Information = MultiLanguage.GetText("getsentmessage"),
-                        Cancel = false
-                    };
-                    OnDmsProgress(args);
-                    Application.DoEvents();
-
-                    // Versendete Nachricht ermitteln und Ablage vorbereiten
-                    GroupwareTypeLibrary.Message msg = GroupwiseUtil.GetSentMessage(SignatureStatic.SentGuid);
-                    GwDocument document = new(msg);
-                    ulong dmsId;
-
-                    // Statische Werte zurücksetzen
-                    SignatureStatic.SentGuid = string.Empty;
-                    SignatureStatic.Storage = false;
-
-                    // Standortermittlung aus History-Einträgen
-                    args.Information = MultiLanguage.GetText("gettargetlocation");
-                    OnDmsProgress(args);
-                    DmsLocation? location = document.GetDmsTargetLocation();
-
-                    // Upload ins Dms mit Indexdaten und Ermittlung der Id
-                    args.Information = MultiLanguage.GetText("dmsupload");
-                    OnDmsProgress(args);
-                    string exportFile = Path.Combine(Path.GetTempPath(), $"{Constants.APPSHORT}_{DateTime.Now.ToFileTime()}.ima");
-                    try {
-                        // Upload, falls Standort(e) nicht vorhanden, wird die Outbox des Benutzers verwendet und gegebenenfalls erstellt
-                        GroupwiseUtil.ExportMessage(msg, exportFile);
-                        dmsId = AppConnector.CreateDocumentAsync(document, location, exportFile).GetAwaiter().GetResult();
-                    } finally {
-                        // Temporärdatei löschen
-                        if (File.Exists(exportFile)) {
-                            File.Delete(exportFile);
-                        }
+                    // Upload, falls Standort(e) nicht vorhanden, wird die Outbox des Benutzers verwendet und gegebenenfalls erstellt
+                    GroupwareTypeLibrary.Message message = msg!;
+                    FormProgress.Invoke((Action)(() => GroupwiseUtil.ExportMessage(message, exportFile)));
+                    dmsId = await AppConnector.CreateDocumentAsync(document!, location, exportFile);
+                } finally {
+                    // Temporärdatei löschen
+                    if (File.Exists(exportFile)) {
+                        File.Delete(exportFile);
                     }
+                }
 
-                    // Ablageclient aufrufen
-                    if (dmsId > 0) {
-                        GwCustomUI.Classes.CommonUtil.ShowDmsClient([dmsId]);
-                    }
-                } catch {
-                    // Formular schließen
-                    FormProgress.Close();
-
-                    throw;
+                // Ablageclient aufrufen
+                if (dmsId > 0) {
+                    GwCustomUI.Classes.CommonUtil.ShowDmsClient([dmsId]);
                 }
 
                 // Formular ausblenden
-                FormProgress.CloseFade();
+                FormProgress.Invoke((Action)(() => FormProgress.CloseFade()));
+            } catch (Exception e) {
+                // Formular schließen
+                try {
+                    FormProgress.Invoke((Action)(() => FormProgress.Close()));
+                } catch { }
+
+                CommonUtil.GlobalErrorHandler(e);
             }
         }
     }
