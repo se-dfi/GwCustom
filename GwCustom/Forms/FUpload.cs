@@ -94,6 +94,13 @@ namespace GwCustom.Forms
         /// <param name="e"></param>
         public void MenuDms_DmsProgress(object? sender, DmsProgressArgs e)
         {
+            // Fortschrittsmeldungen aus asynchroner Ablage auf den Formularthread holen
+            if (InvokeRequired)
+            {
+                BeginInvoke((Action)(() => MenuDms_DmsProgress(sender, e)));
+                return;
+            }
+
             Refresh();
             Application.DoEvents();
             LProgress.Text = String.Format(MultiLanguage.GetText("dmsprogress"), e.Current.ToString(), e.Maximum.ToString());

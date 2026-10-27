@@ -62,7 +62,7 @@ namespace GwCustom.Forms
             }
 
             // zur Groupwise-Nachricht zugehörige Dokumente aus dem DMS ermitteln
-            List<DmsDocument> documents = message.GetDmsDocuments();
+            List<DmsDocument> documents = await message.GetDmsDocumentsAsync();
 
             // Für die gefundenen Dokumente die Informationen inklusive Standorte asynchron ermitteln und in eine Gesamtliste zusammenfassen
             List<string> distribution = [];

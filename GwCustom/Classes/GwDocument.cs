@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using static GwCustomUI.Classes.Constants;
 
 namespace GwCustom.Models
@@ -25,6 +26,10 @@ namespace GwCustom.Models
 
         private readonly Message3 _message;
 
+        private readonly List<string> _historyGuids;
+
+        private readonly string _barcode;
+
         public GwDocument(dynamic message, ulong fileId = 0)
         {
             _message = message;
@@ -38,6 +43,10 @@ namespace GwCustom.Models
             MailAddressesTo = [];
             MailAddressesCc = [];
             GetMailAdressLists();
+
+            // Groupwise-Inhalte vorab ermitteln, asynchrone Abläufe dürfen nicht mehr auf COM-Objekte zugreifen
+            _historyGuids = GroupwiseUtil.GetMessageHistorySentGuids(_message);
+            _barcode = GroupwiseUtil.GetMessageBarcode(_message);
         }
 
         public string Id { get; set; }
@@ -103,13 +112,13 @@ namespace GwCustom.Models
         /// DMS Dokument(e) zur Groupwise Nachricht ermitteln
         /// </summary>
         /// <returns>Liste der DMS Dokumente</returns>
-        public List<DmsDocument> GetDmsDocuments()
+        public async Task<List<DmsDocument>> GetDmsDocumentsAsync()
         {
             List<DmsDocument> documents = [];
             List<DmsDocument> search;
 
             // Variante 1: DmsObjekt und Standorte per SentGuid
-            search = AppConnector.GetDocumentsByGuidAsync(SentGuid, true, true, true).GetAwaiter().GetResult();
+            search = await AppConnector.GetDocumentsByGuidAsync(SentGuid, true, true, true);
             if (search.Count > 0)
             {
                 documents.AddRange(GetDmsDocumentsEqual(search));
@@ -118,7 +127,7 @@ namespace GwCustom.Models
             // Variante 2: DmsObjekt und Standorte per Dokument-Id aus .os Anhang
             if (documents.Count == 0 && FileId > 0)
             {
-                search = AppConnector.GetDocumentsByIdAsync(FileId, true, true, true).GetAwaiter().GetResult();
+                search = await AppConnector.GetDocumentsByIdAsync(FileId, true, true, true);
                 if (search.Count > 0)
                 {
                     documents.AddRange(GetDmsDocumentsEqual(search));
@@ -128,10 +137,10 @@ namespace GwCustom.Models
             // Variante 3: DmsObjekt und Standorte per Indexdatensuche, aber nicht wenn es einen .os Anhang gibt
             if (documents.Count == 0 && FileId == 0)
             {
-                search = AppConnector.GetDocumentsByIndexdataAsync(this, true, true, true, true).GetAwaiter().GetResult();
+                search = await AppConnector.GetDocumentsByIndexdataAsync(this, true, true, true, true);
                 if (search.Count == 0)
                 {
-                    search = AppConnector.GetDocumentsByIndexdataAsync(this, false, true, true, true).GetAwaiter().GetResult();
+                    search = await AppConnector.GetDocumentsByIndexdataAsync(this, false, true, true, true);
                 }
                 if (search.Count > 0)
                 {
@@ -143,17 +152,27 @@ namespace GwCustom.Models
         }
 
         /// <summary>
-        ///  Zielstandort für eine im DMS noch nicht vorhandene Groupwise Nachricht ermitteln
+        ///  Zielstandort für eine im DMS noch nicht vorhandene Groupwise Nachricht ermitteln,
+        ///  blockierender Synchronaufruf nur für in C3PO synchron gebundene Abläufe (CmdSend)
         /// </summary>
         /// <returns>DMS Standort</returns>
         public DmsLocation? GetDmsTargetLocation()
         {
+            return GetDmsTargetLocationAsync().GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        ///  Zielstandort für eine im DMS noch nicht vorhandene Groupwise Nachricht ermitteln
+        /// </summary>
+        /// <returns>DMS Standort</returns>
+        public async Task<DmsLocation?> GetDmsTargetLocationAsync()
+        {
             // Zielstandort aus abgelegten Verlaufs - Mails anhand derer SentGuid finden
             List<DmsDocument> documents;
             List<DmsLocation> targets = [];
-            foreach (var guid in GroupwiseUtil.GetMessageHistorySentGuids(_message))
+            foreach (var guid in _historyGuids)
             {
-                documents = AppConnector.GetDocumentsByGuidAsync(guid, false, false, true).GetAwaiter().GetResult();
+                documents = await AppConnector.GetDocumentsByGuidAsync(guid, false, false, true);
                 foreach (var document in documents)
                 {
                     foreach (var location in document.Locations)
@@ -172,9 +191,9 @@ namespace GwCustom.Models
             else if (targets.Count == 0)
             {
                 // Zielstandort aus altem E-mailbarcode ermitteln falls möglich
-                if (ulong.TryParse(GroupwiseUtil.GetMessageBarcode(_message), out ulong id) && id > 0)
+                if (ulong.TryParse(_barcode, out ulong id) && id > 0)
                 {
-                    documents = AppConnector.GetDocumentsByIdAsync(id, false, false, true).GetAwaiter().GetResult();
+                    documents = await AppConnector.GetDocumentsByIdAsync(id, false, false, true);
                     foreach (var document in documents)
                     {
                         foreach (var location in document.Locations)
